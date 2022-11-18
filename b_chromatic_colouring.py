@@ -240,15 +240,15 @@ def does_encircle(T, V2, m):
 def find_m_largets_dense(T, V, m):
     m_largest_dense = []
 
-    for v in V:
-        if T.degree(v) >= m: m_largest_dense.append(v)
-    for v in V:
-        if T.degree(v) >= m-1: m_largest_dense.append(v)
-    #vertices_degree = {v:T.degree(v) for v in V}
-    #for _ in range(m):
-    #    key = max(vertices_degree, key=lambda k:vertices_degree[k])
-    #    m_largest_dense.append(key)
-    #    vertices_degree.pop(key)
+    #for v in V:
+    #    if T.degree(v) >= m: m_largest_dense.append(v)
+    #for v in V:
+    #    if T.degree(v) >= m-1: m_largest_dense.append(v)
+    vertices_degree = {v:T.degree(v) for v in V}
+    for _ in range(m):
+        key = max(vertices_degree, key=lambda k:vertices_degree[k])
+        m_largest_dense.append(key)
+        vertices_degree.pop(key)
     return m_largest_dense
 
 def good_set(T, V1, m):

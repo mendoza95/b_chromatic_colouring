@@ -1,6 +1,7 @@
 import pickle
 import random
 import networkx as nx
+from scipy.sparse.csgraph import minimum_spanning_tree
 
 def build_random_tree_nodes(n):   
     import random
@@ -62,6 +63,13 @@ def random_recursive_tree(n):
         nodes.append(v)
     return nx.Graph(edge_list)
 
+def random_mst_tree_scipy(n):
+    T = nx.complete_graph(n)
+    for u, v in T.edges():
+        T[u][v]['weight'] = random.random()
+    A_t = minimum_spanning_tree(nx.adjacency_matrix(T))
+    return nx.from_numpy_array(A_t)
+
 def random_mst_tree(n):
     G = nx.complete_graph(n)
     for u, v in G.edges():
@@ -111,18 +119,22 @@ def get_edges_lists(file, n_edges):
     return edges_list
 
 def store_graphs_as_list_of_dicts(filename, graph_list):
-    dict_of_trees = {}
-    for key in graph_list.keys():
-        list_of_dicts = [nx.to_dict_of_lists(G) for G in graph_list[key]]
-        dict_of_trees[key] = list_of_dicts
+    #dict_of_trees = {}
+    #for key in graph_list.keys():
+    #    list_of_dicts = [nx.to_dict_of_lists(G) for G in graph_list[key]]
+        #dict_of_trees[key] = list_of_dicts
+    list_of_dicts = [nx.to_dict_of_lists(G) for G in graph_list]
     with open(filename, 'wb') as f:
-        pickle.dump(dict_of_trees, f)
+        #pickle.dump(dict_of_trees, f)
+        pickle.dump(list_of_dicts, f)
 
 def load_graph_from_list_of_dicts(filename):
     with open(filename, 'rb') as f:
-        dict_of_trees = pickle.load(f)
-    graphs_dict = {}
-    for key in dict_of_trees.keys():
-        graphs = [nx.from_dict_of_lists(G) for G in dict_of_trees[key]]
-        graphs_dict[key] = graphs
-    return graphs_dict
+    #    dict_of_trees = pickle.load(f)
+        list_of_dicts = pickle.load(f)
+    #graphs_dict = {}
+    #for key in dict_of_trees.keys():
+    #    graphs = [nx.from_dict_of_lists(G) for G in dict_of_trees[key]]
+    #    graphs_dict[key] = graphs
+    list_of_trees = [nx.from_dict_of_lists(G) for G in list_of_dicts]
+    return list_of_trees
