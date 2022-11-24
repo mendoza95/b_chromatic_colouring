@@ -32,98 +32,118 @@ def scatter_plot(xs, ys, labels, x_label, y_label, filename):
     fig.savefig(filename)
 
 
-def generate_random_trees(n_vertices_list, n_repetitions, f_tree, filename):
-    with open(filename, "a") as f:
+def generate_random_trees(filename, n_attempts, n_vertices_list, random_tree_generators):
+    #n_vertices_list = [i for i in range(initial_n, max_n_vertices, 
+    #    n_vertices_increment)
+    #]
+    for key, f_tree in random_tree_generators.items():
+        print("Generating {} samples".format(key))
+        #graphs_list = {}
         for n in n_vertices_list:
-            for _ in range(n_repetitions):
+            graphs_list = []
+            for i in range(n_attempts):
                 Ti = f_tree(n)
-                f.write("{} {}\n".format(len(Ti.nodes()), len(Ti.edges())))
-                for u, v in Ti.edges():
-                    f.write("{} {}\n".format(u,v))
+                graphs_list.append(Ti)
+            store_graphs_as_list_of_dicts(filename.format(key.replace(" ", "_"), n), graphs_list)
 
 
-def compute_statistics_on_random_trees(filename, tree_filename=None, 
-        n_vertices_increment=None, max_n_vertices=None,initial_n=None):
+def compute_statistics_on_random_trees(filename, tree_name, n_vertices_list):
     print("Loading {} samples for computing statistics".format(filename.replace("_", " ")))
     #trees_dict = load_graph_from_list_of_dicts(filename)
     #n_vertices_increment = list(trees_dict.keys())[1] - list(trees_dict.keys())[0]
     #max_n_vertices = max(trees_dict.keys()) + n_vertices_increment
-    n_vertices_list = [i for i in range(initial_n, max_n_vertices, n_vertices_increment)]
+    #n_vertices_list = [i for i in range(initial_n, max_n_vertices, n_vertices_increment)]
     statistics_list = ["max_degree_avg", "m_degree_avg", "dense_vertices_avg", "non_pivoted_avg", "b_chromatic_avg", "colouring_time_avg"]
     dict_statistics = {stats:[] for stats in statistics_list}
     dict_statistics["n_vertices_list"] = n_vertices_list
     for n in n_vertices_list:
+        sys.stdout.write("\rColouring trees of size: {}".format(n))
+        sys.stdout.flush()
         trees_list = load_graph_from_list_of_dicts(filename.format(tree_name, n))
+        n_attempts = len(trees_list)
         dict_averages = {stats:0 for stats in statistics_list}
         aux = {}
-        for Ti in trees_list:
+        for _ in range(n_attempts):
             start_colouring = timer()
-            aux["max_degree_avg"], aux["m_degree_avg"], aux["dense_vertices_avg"], aux["b_chromatic_avg"], aux["non_pivoted_avg"], _, _ = colour_tree(Ti)
+            aux["max_degree_avg"], aux["m_degree_avg"], \
+            aux["dense_vertices_avg"], aux["b_chromatic_avg"], \
+            aux["non_pivoted_avg"], _, _ = colour_tree(trees_list.pop())
             end_colouring = timer()
             aux["colouring_time_avg"] = end_colouring-start_colouring
             for stats in statistics_list:
                 dict_averages[stats] += aux[stats]
+        del trees_list
         for stats in statistics_list:
-            dict_statistics[stats].append(dict_averages[stats]/n)
+            dict_statistics[stats].append(dict_averages[stats]/n_attempts)
        
+    sys.stdout.write("\n")
     return dict_statistics, statistics_list
 
-def run_verification(filename, tree_name=None, n_vertices_increment=None, max_n_vertices=None, initial_n=None):
+def run_verification(filename, n_vertices_list, tree_name=None):
     print("Loading {} samples for verification".format(filename.replace("_", " ")))
     #trees_dict = load_graph_from_list_of_dicts(filename)
-    n_vertices_list = [i for i in range(initial_n, max_n_vertices, n_vertices_increment)]
+    #n_vertices_list = [i for i in range(initial_n, max_n_vertices, n_vertices_increment)]
     for n in n_vertices_list:
         trees_list = load_graph_from_list_of_dicts(filename.format(tree_name, n))
-        for Ti in trees_list:
+        n_attempts = len(trees_list)
+        sys.stdout.write("\rVerifying trees of size: {}".format(n))
+        sys.stdout.flush()
+        for i in range(n_attempts):
+            Ti = trees_list.pop()
             _, m_degree, _, b_chromatic, non_pivoted, colors, W = colour_tree(Ti)
-            #VERIFICATION 1
-            if non_pivoted == 1:
-                assert b_chromatic == m_degree
-            else:
-                assert b_chromatic == m_degree - 1
-            #VERIFICATION 2
-            m_degree2 = get_m_degree_2(Ti)
-            assert m_degree == m_degree2
-            #VERIFICATION 3
-            check_b_chromatic_coloring(Ti, W, colors, m_degree)
+            try:
+                #VERIFICATION 1
+                if non_pivoted == 1:
+                    assert b_chromatic == m_degree
+                else:
+                    assert b_chromatic == m_degree - 1
+                #VERIFICATION 2
+                m_degree2 = get_m_degree_2(Ti)
+                assert m_degree == m_degree2
+                #VERIFICATION 3
+                check_b_chromatic_coloring(Ti, W, colors, m_degree)
+            except AssertionError:
+                sys.stdout.write("Error in tree # {} of size {}".format(i,n))
+        del trees_list
+        del Ti
+    sys.stdout.write("\n")
 
 if __name__ == "__main__":
-    #EXECUTION 1: python3 b_chromatic_colouring_experiments.py n_attemps inintial_n max_n_vertices n_vertices_increment
+    #EXECUTION 1: python3 b_chromatic_colouring_experiments.py n_attemps create
     #EXECUTION 2: python3 b_chromatic_colouring_experiments.py experiment_folder
+    n_vertices_list1 = [i for i in range(100,1100,100)]+[j for j in range(1500, 10500,500)]
+    n_vertices_list2 = [i for i in range(100,1100,100)]+[j for j in range(1500, 5500,500)]
+    n_vertices_list3 = [i for i in range(100,1100,100)]+[j for j in range(1500, 4500,500)]
     dataset_folder = "{}/datasets/{}"
     plots_folder = "{}/plots/{}"
     generate_dateset = False
-    if len(sys.argv) == 2:
-        parent_directory = sys.argv[1]
-    else:
+    if len(sys.argv) > 2:
+        generate_dateset = True
         n_attempts = int(sys.argv[1])
-        initial_n = int(sys.argv[2])
-        max_n_vertices = int(sys.argv[3])
-        n_vertices_increment = int(sys.argv[4])
         parent_directory = "experiment_{}".format(datetime.now().strftime("%H_%M_%d_%m_%Y"))
         os.mkdir(parent_directory)
         os.mkdir(plots_folder[:-3].format(parent_directory))
         os.mkdir(dataset_folder[:-3].format(parent_directory))
-        generate_dateset = True
+    else:
+        parent_directory = sys.argv[1]
+
     results_dict = {}
-    random_tree_generators = {  "Random recursive tree":random_recursive_tree, 
+    random_tree_generators = {  #"Random recursive tree":random_recursive_tree, 
                                 "MST tree":random_mst_tree, 
                                 "BFS tree":random_bfs_tree, 
-                                "Pruffer tree":nx.random_tree
+                                #"Pruffer tree":nx.random_tree
                             }
     filename = dataset_folder.format(parent_directory, "{}_{}.pkl")
     #filename = dataset_folder.format(parent_directory, "{}.pkl")
-
-    if generate_dateset:    
-        generate_random_trees(n_attempts, max_n_vertices, n_vertices_increment, 
-            random_tree_generators, filename, initial_n)
+    if generate_dateset:
+        generate_random_trees(filename, n_attempts, n_vertices_list3, 
+            random_tree_generators)
     for name, f_name in random_tree_generators.items():
         tree_name = name.replace(" ","_")
         dict_statistics, statistics_list= compute_statistics_on_random_trees(filename, 
-            tree_name, n_vertices_increment, max_n_vertices, initial_n)
+            tree_name, n_vertices_list3)
         #dict_statistics, statistics_list= compute_statistics_on_random_trees(filename.format(tree_name))
-        run_verification(filename, tree_name, n_vertices_increment, 
-            max_n_vertices, initial_n)
+        run_verification(filename, n_vertices_list1, tree_name)
         #run_verification(filename.format(tree_name))
         results_dict[name] = dict_statistics
     statistics_result_lists = {stats_name:None for stats_name in statistics_list}
@@ -158,3 +178,6 @@ if __name__ == "__main__":
     plot_lines(statistics_result_lists["n_vertices_list"], statistics_result_lists["colouring_time_avg"],\
                  random_tree_generators.keys(), "number of vertices", "avg time to colour",\
                  plots_folder.format(parent_directory, "n_vertices_v_time_to_colour"))  
+
+#Error in tree 244 of size 100 in Randon recursive trees
+#Error in tree 3054 of size 100 in Prufer trees
