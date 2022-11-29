@@ -1,9 +1,10 @@
-from logging.config import dictConfig
-from timeit import default_timer as timer
 import os
 import sys
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+from logging.config import dictConfig
+from timeit import default_timer as timer
 from datetime import datetime
 from b_chromatic_colouring import *
 from b_chromatic_utils import *
@@ -33,22 +34,31 @@ def scatter_plot(xs, ys, labels, x_label, y_label, filename):
 
 
 def generate_random_trees(filename, n_attempts, n_vertices_list, random_tree_generators):
-    #n_vertices_list = [i for i in range(initial_n, max_n_vertices, 
-    #    n_vertices_increment)
-    #]
+    generation_times = {}
     for key, f_tree in random_tree_generators.items():
         print("Generating {} samples".format(key))
-        #graphs_list = {}
+        generation_times[key] = []
+        total_generation_time = 0
         for n in n_vertices_list:
             graphs_list = []
+            avg_gen_time = 0
             for i in range(n_attempts):
+                t = timer()
                 Ti = f_tree(n)
+                t = timer()-t
+                avg_gen_time += t
                 graphs_list.append(Ti)
+            sys.stdout.write("\r{} of {} nodes generated in {} seconds".format(key, n,avg_gen_time))
+            sys.stdout.flush()
+            generation_times[key].append(avg_gen_time/n_attempts)
+            total_generation_time += avg_gen_time
             store_graphs_as_list_of_dicts(filename.format(key.replace(" ", "_"), n), graphs_list)
+        print("\n\tTotal generation time for {}: {} hours".format(key, round(total_generation_time/3600,2)))
+    return generation_times
 
 
 def compute_statistics_on_random_trees(filename, tree_name, n_vertices_list):
-    print("Loading {} samples for computing statistics".format(filename.replace("_", " ")))
+    print("Loading {} samples of {} for computing statistics".format(filename, tree_name))
     #trees_dict = load_graph_from_list_of_dicts(filename)
     #n_vertices_increment = list(trees_dict.keys())[1] - list(trees_dict.keys())[0]
     #max_n_vertices = max(trees_dict.keys()) + n_vertices_increment
@@ -80,7 +90,7 @@ def compute_statistics_on_random_trees(filename, tree_name, n_vertices_list):
     return dict_statistics, statistics_list
 
 def run_verification(filename, n_vertices_list, tree_name=None):
-    print("Loading {} samples for verification".format(filename.replace("_", " ")))
+    print("Loading {} samples of {} for verification".format(filename, tree_name))
     #trees_dict = load_graph_from_list_of_dicts(filename)
     #n_vertices_list = [i for i in range(initial_n, max_n_vertices, n_vertices_increment)]
     for n in n_vertices_list:
@@ -112,8 +122,8 @@ if __name__ == "__main__":
     #EXECUTION 1: python3 b_chromatic_colouring_experiments.py n_attemps create
     #EXECUTION 2: python3 b_chromatic_colouring_experiments.py experiment_folder
     n_vertices_list1 = [i for i in range(100,1100,100)]+[j for j in range(1500, 10500,500)]
-    n_vertices_list2 = [i for i in range(100,1100,100)]+[j for j in range(1500, 5500,500)]
-    n_vertices_list3 = [i for i in range(100,1100,100)]+[j for j in range(1500, 4500,500)]
+    #n_vertices_list2 = [i for i in range(100,1100,100)]+[j for j in range(1500, 5500,500)]
+    #n_vertices_list3 = [i for i in range(100,1100,100)]+[j for j in range(1500, 4500,500)]
     dataset_folder = "{}/datasets/{}"
     plots_folder = "{}/plots/{}"
     generate_dateset = False
@@ -128,29 +138,34 @@ if __name__ == "__main__":
         parent_directory = sys.argv[1]
 
     results_dict = {}
-    random_tree_generators = {  #"Random recursive tree":random_recursive_tree, 
+    random_tree_generators = {  "Random recursive tree":random_recursive_tree, 
                                 "MST tree":random_mst_tree, 
                                 "BFS tree":random_bfs_tree, 
-                                #"Pruffer tree":nx.random_tree
+                                "Pruffer tree":nx.random_tree
                             }
     filename = dataset_folder.format(parent_directory, "{}_{}.pkl")
     #filename = dataset_folder.format(parent_directory, "{}.pkl")
     if generate_dateset:
-        generate_random_trees(filename, n_attempts, n_vertices_list3, 
+        generation_times = generate_random_trees(filename, n_attempts, n_vertices_list1, 
             random_tree_generators)
     for name, f_name in random_tree_generators.items():
         tree_name = name.replace(" ","_")
         dict_statistics, statistics_list= compute_statistics_on_random_trees(filename, 
-            tree_name, n_vertices_list3)
-        #dict_statistics, statistics_list= compute_statistics_on_random_trees(filename.format(tree_name))
+            tree_name, n_vertices_list1)
         run_verification(filename, n_vertices_list1, tree_name)
-        #run_verification(filename.format(tree_name))
         results_dict[name] = dict_statistics
     statistics_result_lists = {stats_name:None for stats_name in statistics_list}
+    statistics_result_lists["avg_generation_time"] = [generation_times[key] for key in random_tree_generators.keys()]
     statistics_result_lists["n_vertices_list"] = [results_dict[name]["n_vertices_list"] for name in results_dict.keys()]
     for stats_name in statistics_list:
         statistics_result_lists[stats_name] = [results_dict[name][stats_name] for name in results_dict.keys()]
    
+    results_dict["tree_generation_times"] = generation_times
+    with open("{}/results_dict.pkl".format(parent_directory), "wb") as f:
+        pickle.dump(results_dict,f)
+
+    plot_lines(statistics_result_lists["n_vertices_list"], statistics_result_lists["avg_generation_time"], random_tree_generators.keys(),\
+                 "number of vertices", "AVG generation time", plots_folder.format(parent_directory, "n_vertices_v_generation_time"))
 
     plot_lines(statistics_result_lists["n_vertices_list"], statistics_result_lists["m_degree_avg"], random_tree_generators.keys(),\
                  "number of vertices", "m-degree", plots_folder.format(parent_directory, "n_vertices_v_m_degree"))
