@@ -1,13 +1,14 @@
 import pickle
 import random
 import networkx as nx
+from disjoint_set import DisjointSet
 from scipy.sparse.csgraph import minimum_spanning_tree
 
 def build_random_tree_nodes(n):   
     import random
     if n == 1: return {0:0}
     degrees_sum = 0
-    nodes_degree = {i:random.randint(1, n) for i in range(n)}
+    nodes_degree = {i:1 for i in range(n)}
     aux = nodes_degree.copy()
     for i in range(n): degrees_sum += nodes_degree[i]
     difference = degrees_sum - 2*(n-1)
@@ -71,6 +72,17 @@ def random_mst_tree_scipy(n):
     return nx.from_numpy_array(A_t)
 
 def random_mst_tree(n):
+    edges_list = []
+    disjoint_set =  DisjointSet(n)
+    while len(edges_list) < n-1:
+        i = random.randint(0, n-1)
+        j = random.randint(0, n-1)
+        if disjoint_set.find(i) != disjoint_set.find(j):
+            edges_list.append((i,j))
+            disjoint_set.union(i, j)
+    return nx.Graph(edges_list)
+
+def random_mst_tree_2(n):
     G = nx.complete_graph(n)
     for u, v in G.edges():
         G[u][v]['weight'] = random.random()
