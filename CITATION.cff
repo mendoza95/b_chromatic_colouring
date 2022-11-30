@@ -6,4 +6,5 @@ authors:
     orcid: https://orcid.org/0000-0003-4925-7248
 title: "Linear Time Implementation of the b-chromatic Colouring Algorithm for Trees"
 version: 1.0.0
+doi: https://github.com/mendoza95/b_chromatic_colouring
 date-released: 2022-30-11
