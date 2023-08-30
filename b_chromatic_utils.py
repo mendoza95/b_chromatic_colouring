@@ -89,7 +89,7 @@ def random_mst_tree_2(n):
     T = nx.minimum_spanning_tree(G)
     return T
 
-def get_colors_to_use(T, colors, n):
+def get_colors_to_use(colors):
     unique_colors = set(list(colors.values()))
     colors_to_use = {c:get_random_color() for c in unique_colors if c is not None}
     node_colors_list = []
