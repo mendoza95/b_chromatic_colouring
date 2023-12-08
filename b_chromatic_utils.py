@@ -4,6 +4,45 @@ import networkx as nx
 from disjoint_set import DisjointSet
 from scipy.sparse.csgraph import minimum_spanning_tree
 
+def are_b_chromatic(G, f, V):
+    """Check whether the vertices in V are b-chromatic for every colour in c
+        G: Graph 
+        f: colouring function, 
+        V: set of vertices
+    """
+    C = set(f.values())
+    #flag for checking if there is a b-chromatic vertex for colour c
+    CB = {c:False for c in C if c is not None}
+    k = len(CB)
+    for c in CB:
+        for u in V:
+            if f[u] == c:
+                Cp = set()
+                for v in G.adj[u]:
+                    Cp.add(f[v])
+                if len(Cp) == k-1: CB[c] = True
+    for c in CB:
+        if not CB[c]: return False
+    return True
+
+def is_proper(G, c):
+    """Check whether the colouring c is proper
+    G: Graph, c: colour assignment function"""
+    for u,v in G.edges():
+        if((c[u] is not None and c[v] is not None) and (c[u] == c[v])):
+            return False
+    return True
+
+def get_b_chromatic_vertices(G, c):
+    """"Get the b-chromatic vertices from a graph G based on the colouring c
+    G: Graph, c: colour assignment function"""
+    C = {d for d in c.values() if d is not None}
+    B = []
+    for u in G.nodes():
+        cNu = {c[v] for v in G.adj[u] if c[v] is not None}
+        if len(cNu) == len(C)-1: B.append(u)
+    return B
+
 def build_random_tree_nodes(n):   
     import random
     if n == 1: return {0:0}
@@ -113,7 +152,7 @@ def check_b_chromatic_coloring(T, W, colors, m):
         for v in T.adj[w]:
             available_good_colors[w].discard(colors[v])
     for w in W: assert len(available_good_colors[w]) == 0
-    for u, v in T.edges(): assert colors[u] != colors[v]
+    assert is_proper(T, colors)
 
 def write_graph_into_txt(T, filename):
     file_graph = open(filename, "a")

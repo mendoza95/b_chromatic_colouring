@@ -1,33 +1,33 @@
 import networkx as nx
 
 
-def get_m_degree(T):
-    X = [0 for _ in range(0, len(T.nodes())+1)]
-    Z = [0 for _ in range(0, len(T.nodes())+1)]
+def get_m_degree(G):
+    X = [0 for _ in range(0, len(G.nodes())+1)]
+    Z = [0 for _ in range(0, len(G.nodes())+1)]
     max_j = 0
-    for u in T.nodes(): X[T.degree(u)] += 1
-    for j in range(len(T.nodes())-1, 0, -1): Z[j] = Z[j+1] + X[j]
-    for j in range(1, len(T.nodes)):
+    for u in G.nodes(): X[G.degree(u)] += 1
+    for j in range(len(G.nodes())-1, 0, -1): Z[j] = Z[j+1] + X[j]
+    for j in range(1, len(G.nodes)):
         if Z[j-1] >= j:
             max_j = j
     return max_j
 
-def get_vertices_sorted_by_degree(T):
-    vertex_degree_list = {u:T.degree(u) for u in T.nodes()}
+def get_vertices_sorted_by_degree(G):
+    vertex_degree_list = {u:G.degree(u) for u in G.nodes()}
     sorted_vertex_set = dict(sorted(vertex_degree_list.items(), key=lambda item:item[1], reverse=True))
     return sorted_vertex_set
 
-def get_m_degree_2(T):
-    sorted_vertex_set = get_vertices_sorted_by_degree(T)
+def get_m_degree_2(G):
+    sorted_vertex_set = get_vertices_sorted_by_degree(G)
     m = 0
     for i, di in enumerate(sorted_vertex_set.values()):
         if (di >= i): m = i + 1
     return m
 
-def get_dense_vertices(T, m):
+def get_dense_vertices(G, m):
     dense_vertices = []
-    for u in T.nodes():
-        if T.degree(u) >= m-1: dense_vertices.append(u)
+    for u in G.nodes():
+        if G.degree(u) >= m-1: dense_vertices.append(u)
     return dense_vertices
 
 
