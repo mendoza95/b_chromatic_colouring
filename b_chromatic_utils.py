@@ -4,13 +4,54 @@ import networkx as nx
 from disjoint_set import DisjointSet
 from scipy.sparse.csgraph import minimum_spanning_tree
 
+
+def get_m_degree(G):
+    X = [0 for _ in range(0, len(G.nodes())+1)]
+    Z = [0 for _ in range(0, len(G.nodes())+1)]
+    max_j = 0
+    for u in G.nodes(): X[G.degree(u)] += 1
+    for j in range(len(G.nodes())-1, 0, -1): Z[j] = Z[j+1] + X[j]
+    for j in range(1, len(G.nodes)):
+        if Z[j-1] >= j:
+            max_j = j
+    return max_j
+
+def get_vertices_sorted_by_degree(G):
+    vertex_degree_list = {u:G.degree(u) for u in G.nodes()}
+    sorted_vertex_set = dict(sorted(vertex_degree_list.items(), key=lambda item:item[1], reverse=True))
+    return sorted_vertex_set
+
+def get_m_degree_2(G):
+    sorted_vertex_set = get_vertices_sorted_by_degree(G)
+    m = 0
+    for i, di in enumerate(sorted_vertex_set.values()):
+        if (di >= i): m = i + 1
+    return m
+
+def get_dense_vertices(G, m):
+    dense_vertices = []
+    for u in G.nodes():
+        if G.degree(u) >= m-1: dense_vertices.append(u)
+    return dense_vertices
+
+def get_biggest_cc(G):
+    if not nx.is_connected(G):
+        CC = list(nx.connected_components(G))
+        i_max = 0
+        for i, cc in enumerate(CC):
+            if len(cc) >= len(CC[i_max]):
+                i_max = i
+        CCmax = CC[i_max]
+        G = nx.induced_subgraph(G, CCmax)
+    return G
+
 def are_b_chromatic(G, f, V):
     """Check whether the vertices in V are b-chromatic for every colour in c
         G: Graph 
         f: colouring function, 
         V: set of vertices
     """
-    C = set(f.values())
+    C = set([cp for cp in f.values() if cp != None])
     #flag for checking if there is a b-chromatic vertex for colour c
     CB = {c:False for c in C if c is not None}
     k = len(CB)
@@ -21,8 +62,8 @@ def are_b_chromatic(G, f, V):
                 for v in G.adj[u]:
                     Cp.add(f[v])
                 if len(Cp) == k-1: CB[c] = True
-    for c in CB:
-        if not CB[c]: return False
+    for u in V:
+        if not CB[f[u]]: return False
     return True
 
 def is_proper(G, c):

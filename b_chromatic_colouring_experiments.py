@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from logging.config import dictConfig
 from timeit import default_timer as timer
 from datetime import datetime
-from b_chromatic_colouring import *
+from b_chromatic_trees import *
 from b_chromatic_utils import *
 
 def plot_lines(xs, ys, labels, x_label, y_label, filename):
