@@ -4,6 +4,7 @@ import pulp as pl
 import networkx as nx
 from variables import *
 from constraints import *
+from utils import *
 from m_degree import get_total_m_degree
 
 
@@ -70,10 +71,29 @@ def get_total_b_chromatic_model(G, V, E, m):
 
     return b_chr_total_model, x_vars, y_vars, w_vars, t_vars, z_vars
 
+def find_total_b_chromatic_colouring(G, V, E, m, time_limit):
+    """ Constructs the integer programming model for total b-chromatic colouring\n
+        G: networkx graph\n
+        V: set of vertices\n
+        E: set of edges\n
+        time_limit: max allowed time to find a solution\n
+        Return: solution status, objective value, solution time, total colouring (if found), total b-chromatic elements (if found)
+    """
+    C = range(m)
+    bchr_model,  x_vars, y_vars, w_vars, t_vars, z_vars = get_total_b_chromatic_model(G, V, E, m)
+    bchr_model.solve(pl.PULP_CBC_CMD(msg=0, timeLimit=time_limit))
+    f = get_total_colouring_from_model(V, E, C, x_vars, y_vars)
+    b_chr_elements = get_total_b_chromatic_elements(V, E, C, t_vars, z_vars)
+    if bchr_model.sol_status == 1:
+        if is_a_proper_total_colouring(G, E, f) and is_a_total_b_chromatic_colouring(G, V, E, f, b_chr_elements):
+            return bchr_model.sol_status, bchr_model.objective.value(), bchr_model.solutionTime, f, b_chr_elements
+    return bchr_model.sol_status, None, bchr_model.solutionTime, None, None
+        
+
 if __name__ == "__main__":
     G = nx.random_regular_graph(d=3,n=10)
     V = list(G.nodes())
     E = list(G.edges())
     m = get_total_m_degree(G)
-    b_chr_model,  x_vars, y_vars, w_vars, t_vars, z_vars = get_total_b_chromatic_model(G, V, E, m)
-    b_chr_model.solve(pl.PULP_CBC_CMD(msg=1))
+    print(find_total_b_chromatic_colouring(G, V, E, m, 10))
+    
