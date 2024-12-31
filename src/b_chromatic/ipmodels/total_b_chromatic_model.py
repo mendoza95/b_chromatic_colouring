@@ -50,8 +50,8 @@ def get_total_b_chromatic_model(G, V, E, m):
     b_chr_total_model = add_different_colour_vertex_incident_edge_constraint(b_chr_total_model, x_vars, y_vars, V, E, C)
 
     #COLOUR ASSIGNED TO SOME VERTEX OF EDGE CONSTRAINT
-    b_chr_total_model = add_colour_assigned_to_some_vertex_if_constraint(b_chr_total_model, x_vars, w_vars, V, C)
-    b_chr_total_model = add_colour_assigned_to_some_edge_if_constraint(b_chr_total_model, y_vars, w_vars, E, C)
+    #b_chr_total_model = add_colour_assigned_to_some_vertex_if_constraint(b_chr_total_model, x_vars, w_vars, V, C)
+    #b_chr_total_model = add_colour_assigned_to_some_edge_if_constraint(b_chr_total_model, y_vars, w_vars, E, C)
 
     b_chr_total_model = add_colour_assigned_to_some_vertex_edge_onlyif_constraint(b_chr_total_model, x_vars, y_vars, w_vars, V, E, C)
 
