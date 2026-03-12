@@ -1,0 +1,16 @@
+# Ignore the virtual environment (very important!)
+.venv/
+
+# Ignore VSCode settings (personal preferences, not relevant to the project)
+.vscode/
+
+# Ignore Python cache files (speeds up execution but clutters Git)
+__pycache__/
+*.py[cod]
+
+# Ignore environment variables (sensitive data like API keys)
+.env
+
+# Ignore OS-specific files
+.DS_Store
+thumbs.db

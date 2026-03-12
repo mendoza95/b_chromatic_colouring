@@ -1,9 +1,9 @@
 import os
 import networkx as nx
 import pandas as pd
-from partition_redistribution import *
-from b_chromatic_colouring_extension import *
-from b_chromatic_utils import get_biggest_cc, get_m_degree
+from heuristics.partition_redistribution import *
+from heuristics.b_chromatic_colouring_extension import *
+from utils.b_chromatic_utils import get_biggest_cc, get_m_degree
 
 
 name_list = os.listdir("./graphs_datasets/DIMACS/")

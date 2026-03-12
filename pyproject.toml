@@ -1,10 +1,14 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "example_package_YOUR_USERNAME_HERE"
+name = "b_chromatic_colouring_mendoza95"
 version = "0.0.1"
 authors = [
-  { name="Example Author", email="author@example.com" },
+  { name="Fabricio Mendoza Granada", email="fabromendoza95@gmail.com" },
 ]
-description = "A small example package"
+description = "A small package containing  linear time algorithm for finding the b-chromatic number of a tree and a cubic graph, and an IP model for finding the total b-chromatic number of a graph."
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [

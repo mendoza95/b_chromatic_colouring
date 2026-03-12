@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from logging.config import dictConfig
 from timeit import default_timer as timer
 from datetime import datetime
-from b_chromatic_trees import *
-from b_chromatic_utils import *
+from trees.b_chromatic_trees import *
+from utils.b_chromatic_utils import *
 
 def plot_lines(xs, ys, labels, x_label, y_label, filename):
     fig, ax = plt.subplots(1)
