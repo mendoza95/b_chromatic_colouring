@@ -1,8 +1,0 @@
-,N,E,add_one_colour_per_vertex_constraint,add_one_colour_per_edge_constraint,add_different_colour_adj_vertices_constraint,add_different_colour_adj_edges_constraint,add_different_colour_vertex_incident_edge_constraint,add_colour_assigned_to_some_vertex_edge_onlyif_constraint,add_total_b_chromatic_vertex_colour_j_constraint,add_total_b_chromatic_edge_colour_j_constraint,add_there_is_total_b_chromatic_element_for_every_colour_constraint,add_use_all_colours_sequentially_constraint
-0,10,33,0.000239,0.000691,0.003161,0.017052,0.005751,0.001059,0.062912,0.259785,0.001445,0.001028
-1,15,73,0.004838,0.002417,0.011895,0.105243,0.019727,0.002933,0.287117,1.723631,0.003125,0.001363
-2,20,126,0.023849,0.003815,0.020071,0.294766,0.059774,0.008179,0.999652,6.578163,0.006961,0.002233
-3,25,196,0.079812,0.007106,0.048368,0.725155,0.086312,0.012648,2.080997,20.407402,0.013405,0.003501
-4,30,305,0.207721,0.014413,0.081168,2.021491,0.180619,0.026794,5.114321,67.152712,0.027988,0.00794
-5,35,433,0.806586,0.025141,0.139246,4.080885,0.410575,0.044792,9.838878,163.372446,0.055208,0.011736
-6,40,559,3.122659,0.038829,0.226425,7.255346,0.461101,0.066116,16.982817,342.558771,0.079025,0.01232

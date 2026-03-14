@@ -4,6 +4,7 @@
 # Ignore VSCode settings (personal preferences, not relevant to the project)
 .vscode/
 
+
 # Ignore Python cache files (speeds up execution but clutters Git)
 __pycache__/
 *.py[cod]
@@ -14,3 +15,4 @@ __pycache__/
 # Ignore OS-specific files
 .DS_Store
 thumbs.db
+b_chromatic_files/
