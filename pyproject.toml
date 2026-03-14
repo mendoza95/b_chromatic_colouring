@@ -20,3 +20,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/mendoza95/b_chromatic_colouring"
 Issues = "https://github.com/mendoza95/b_chromatic_colouring/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
