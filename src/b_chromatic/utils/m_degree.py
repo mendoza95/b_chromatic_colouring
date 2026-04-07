@@ -23,12 +23,25 @@ def get_index_m_degree(G):
     return max_j
 
 def get_m_degree(G):
-    X = [0 for _ in range(0, len(G.nodes())+1)]
-    Z = [0 for _ in range(0, len(G.nodes())+1)]
+    """Computes the m-degree of a graph G.
+
+    This function takes a graph G as input and computes its m-degree, which is the maximum integer j such that there exists at least j vertices in G with degree at least j-1.
+
+    Args:
+        G (networkx.Graph): A networkx graph.
+
+    Returns:
+        max_j (int): The m-degree of G.
+    """
+    n = len(G.nodes())
+    if n == 0: return 0
+    X = [0 for _ in range(0, n)] # Stores the number of vertices with degree i
+    Z = [0 for _ in range(0, n)] # Stores the number of vertices with degree at least i
     max_j = 0
     for u in G.nodes(): X[G.degree(u)] += 1
-    for j in range(len(G.nodes())-1, 0, -1): Z[j] = Z[j+1] + X[j]
-    for j in range(1, len(G.nodes)):
+    Z[n-1] = X[n-1]
+    for j in range(n-2, -1, -1): Z[j] = Z[j+1] + X[j]
+    for j in range(1, n+1):
         if Z[j-1] >= j:
             max_j = j
     return max_j
