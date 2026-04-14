@@ -1,5 +1,4 @@
 import networkx as nx
-import random
 
 def get_dense_vertices(G, m):
     """Get the dense vertices of a graph G with m-degree m.
@@ -11,7 +10,7 @@ def get_dense_vertices(G, m):
         m (int): m-degree of the graph
 
     Returns:
-        list: List of dense vertices
+        list[int]: List of dense vertices
     """
     # check that G is a networkx graph and m is a positive integer
     if (not isinstance(G, nx.Graph)
@@ -53,10 +52,15 @@ def get_biggest_cc(G):
     return G
 
 def are_b_chromatic(G, f, V):
-    """Check whether the vertices in V are b-chromatic for every colour in c
-        G: Graph 
-        f: colouring function, 
-        V: set of vertices
+    """Verify whether the vertices in V are b-chromatic vertices with respect to f for some colour c.
+
+    Args:
+        G (networkx.Grah): Graph.
+        f (dict[int, int]): Colouring function. 
+        V (list[int]): set of vertices.
+    
+    Returns
+        Bool: Whether vertices in V are all b-chromatic.
     """
     C = set([cp for cp in f.values() if cp != None])
     #flag for checking if there is a b-chromatic vertex for colour c
@@ -74,16 +78,32 @@ def are_b_chromatic(G, f, V):
     return True
 
 def is_proper(G, c):
-    """Check whether the colouring c is proper
-    G: Graph, c: colour assignment function"""
+    """Verify whether a colouring c is proper.
+
+    A proper colouring is a an assignment of colours (labels) to the vertices of V such that any pair of adjacent vertices are assigned different colours.
+
+    Args:
+        G (networkx.Graph): Graph
+        c (dict[int, int]): Colouring function
+        
+    Return:
+        bool: Whether c is proper or not.    
+    """
     for u,v in G.edges():
         if((c[u] is not None and c[v] is not None) and (c[u] == c[v])):
             return False
     return True
 
 def get_b_chromatic_vertices(G, c):
-    """"Get the b-chromatic vertices from a graph G based on the colouring c
-    G: Graph, c: colour assignment function"""
+    """"Get the b-chromatic vertices of a graph G with respect to c
+    
+    Args:
+        G (networkx.Graph): Graph.
+        c (dict[int,int]): Colouring function.
+    
+    Returns:
+        list[int]: List of b-chromatic vertices.
+    """
     C = {d for d in c.values() if d is not None}
     B = []
     for u in G.nodes():
@@ -93,6 +113,7 @@ def get_b_chromatic_vertices(G, c):
 
 
 def check_b_chromatic_coloring(T, W, colors, m):
+    # This function is the same as are_b_chromatic function so it must be discarded.
     for value in colors.values(): assert value != None
     available_good_colors = {w:set(list(colors.values())) for w in W}
     for w in W:
