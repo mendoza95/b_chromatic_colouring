@@ -1,6 +1,15 @@
 import networkx as nx
 
-def get_dense_vertices(G, m):
+from collections import defaultdict
+
+def check_G_instance(G: nx.Graph):
+    """check that G is a networkx graph"""
+    if (not isinstance(G, nx.Graph)
+        or isinstance(G, (nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph))):
+        raise TypeError("G must be a networkx graph")
+    
+
+def get_dense_vertices(G: nx.Graph, m: int) -> list[int]:
     """Get the dense vertices of a graph G with m-degree m.
 
     The dense vertices are the vertices with degree at least m-1.
@@ -12,18 +21,12 @@ def get_dense_vertices(G, m):
     Returns:
         list[int]: List of dense vertices
     """
-    # check that G is a networkx graph and m is a positive integer
-    if (not isinstance(G, nx.Graph)
-        or isinstance(G, (nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph))):
-        raise TypeError("G must be a networkx graph")
+    check_G_instance(G)
     if not isinstance(m, int) or m <= 0:
         raise ValueError("m must be a positive integer")
-    dense_vertices = []
-    for u in G.nodes():
-        if G.degree(u) >= m-1: dense_vertices.append(u)
-    return dense_vertices
+    return [u for u in G.nodes() if G.degree(u) >= m-1]
 
-def get_biggest_cc(G):
+def get_biggest_cc(G: nx.Graph) -> nx.Graph:
     """
     Get the biggest connected component of a graph G.
 
@@ -36,80 +39,98 @@ def get_biggest_cc(G):
         networkx.Graph: Biggest connected component of G
     
     """
-    # check that G is a networkx graph    
-    if (not isinstance(G, nx.Graph)
-        or isinstance(G, (nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph))):
-        raise TypeError("G must be a networkx graph")
+    check_G_instance(G)
     if nx.is_connected(G): return G
     else:
-        CC = list(nx.connected_components(G))
-        i_max = 0
-        for i, cc in enumerate(CC):
-            if len(cc) >= len(CC[i_max]):
-                i_max = i
-        CCmax = CC[i_max]
-        G = nx.induced_subgraph(G, CCmax)
+        components_dict = {i:cc for i, cc in enumerate(nx.connected_components(G))}
+        max_cc = max(components_dict.items(), key=lambda x:len(x[1]))[1]
+
+        G = nx.induced_subgraph(G, max_cc)
     return G
 
-def are_b_chromatic(G, f, V):
+def is_u_b_chromatic(G: nx.Graph, f: dict[int, int], u: int, C: set[int]=None) -> bool:
+    """Verify whether vertex u is b-chromatic in G with respect to colouring f
+    
+    Args:
+        G (networkx.Grah): Graph.
+        f (dict[int, int]): A partial proper colouring function.
+        u (int): A vertex of G.
+        C (set[int]): Set of colours used in G minus the colour of u
+    
+    Returns
+        Bool: Whether vertex u is b-chromatic.
+    """
+    check_G_instance(G)
+    if C is None:
+        C = {f[v] for v in G if f[v] is not None}
+    k = len(C)
+    if len(set({f[v] for v in G.adj[u] if f[v] is not None})) == k-1:
+        # If the number of colours in the neighbourhood of u is k-1
+        return True
+    else:
+        return False
+    
+
+def are_b_chromatic(G: nx.Graph, f: dict[int, int], V: list[int]) -> bool:
     """Verify whether the vertices in V are b-chromatic vertices with respect to f for some colour c.
 
     Args:
         G (networkx.Grah): Graph.
-        f (dict[int, int]): Colouring function. 
+        f (dict[int, int]): A partial proper colouring function.
         V (list[int]): set of vertices.
     
     Returns
         Bool: Whether vertices in V are all b-chromatic.
     """
+    check_G_instance(G)
     C = set([cp for cp in f.values() if cp != None])
-    #flag for checking if there is a b-chromatic vertex for colour c
     CB = {c:False for c in C if c is not None}
-    k = len(CB)
-    for c in CB:
-        for u in V:
-            if f[u] == c:
-                Cp = set()
-                for v in G.adj[u]:
-                    Cp.add(f[v])
-                if len(Cp) == k-1: CB[c] = True
-    for u in V:
-        if not CB[f[u]]: return False
-    return True
+    if all( # For all colours c in C
+        any( # There exists a vertex u of colour c such that |c(N(u))| = k-1
+            is_u_b_chromatic(G, f, u, C) for u in V if f[u] == c
+        ) for c in CB):
+        return True
+    else:
+        return False
 
-def is_proper(G, c):
-    """Verify whether a colouring c is proper.
+def is_proper(G: nx.Graph, f: dict[int, int]) -> bool:
+    """Verify whether a colouring c is proper and not partial (every vertex is coloured).
 
     A proper colouring is a an assignment of colours (labels) to the vertices of V such that any pair of adjacent vertices are assigned different colours.
 
     Args:
         G (networkx.Graph): Graph
-        c (dict[int, int]): Colouring function
+        f (dict[int, int]): Colouring function
         
     Return:
-        bool: Whether c is proper or not.    
+        bool: Whether c is proper and not partial.    
     """
-    for u,v in G.edges():
-        if((c[u] is not None and c[v] is not None) and (c[u] == c[v])):
-            return False
-    return True
+    check_G_instance(G)
+    if all(
+        f[u] is not None and f[v] is not None and f[u] != f[v] for u, v in G.edges()
+    ):
+        return True
+    else:
+        return False
 
-def get_b_chromatic_vertices(G, c):
-    """"Get the b-chromatic vertices of a graph G with respect to c
+def get_b_chromatic_vertices(G: nx.Graph, f: dict[int, int]) -> dict[int, list[int]]:
+    """"Get the b-chromatic vertices of a graph G with respect to a partial proper colouring c
     
     Args:
         G (networkx.Graph): Graph.
-        c (dict[int,int]): Colouring function.
+        f (dict[int,int]): Colouring function.
     
     Returns:
-        list[int]: List of b-chromatic vertices.
+        dict[int, list[int]]: Dictionary of colour classes, i.e., each colour key is associated 
+        to a list of b-chromatic vertex of that colour class.
     """
-    C = {d for d in c.values() if d is not None}
-    B = []
+    check_G_instance(G)
+    C = {c:[] for c in f.values() if c is not None}
+    b_colour_classes = {c:[] for c in C}
     for u in G.nodes():
-        cNu = {c[v] for v in G.adj[u] if c[v] is not None}
-        if len(cNu) == len(C)-1: B.append(u)
-    return B
+        if is_u_b_chromatic(G, f, u, C):
+            b_colour_classes[f[u]].append(u)
+    return b_colour_classes
 
 
 def check_b_chromatic_coloring(T, W, colors, m):
