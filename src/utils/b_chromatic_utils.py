@@ -22,11 +22,11 @@ def get_dense_vertices(G: nx.Graph, m: int) -> list[int]:
         list[int]: List of dense vertices
     """
     check_G_instance(G)
-    if not isinstance(m, int) or m <= 0:
+    if not isinstance(m, int) or m < 0:
         raise ValueError("m must be a positive integer")
     return [u for u in G.nodes() if G.degree(u) >= m-1]
 
-def get_biggest_cc(G: nx.Graph) -> nx.Graph:
+def get_biggest_cc(G: nx.Graph) -> bool | nx.Graph:
     """
     Get the biggest connected component of a graph G.
 
@@ -36,11 +36,15 @@ def get_biggest_cc(G: nx.Graph) -> nx.Graph:
         G (networkx.Graph): Graph
     
     Returns:
-        networkx.Graph: Biggest connected component of G
+        bool | networkx.Graph: False if G is the null graph | Biggest connected component of G
     
     """
     check_G_instance(G)
-    if nx.is_connected(G): return G
+    try:
+        if nx.is_connected(G): return G
+    except nx.NetworkXPointlessConcept:
+        print("G is the null graph, i.e, contains no vertices or edges")
+        return False
     else:
         components_dict = {i:cc for i, cc in enumerate(nx.connected_components(G))}
         max_cc = max(components_dict.items(), key=lambda x:len(x[1]))[1]
@@ -61,6 +65,16 @@ def is_u_b_chromatic(G: nx.Graph, f: dict[int, int], u: int, C: set[int]=None) -
         Bool: Whether vertex u is b-chromatic.
     """
     check_G_instance(G)
+    if G.number_of_nodes() == 0:
+        raise ValueError("G is the null graph")
+    if not f:
+        raise ValueError("f is empty")
+    if u not in G:
+        raise KeyError("vertex u is not in G")
+    if u not in f:
+        raise KeyError("vertex u is not in f")
+    
+    
     if C is None:
         C = {f[v] for v in G if f[v] is not None}
     k = len(C)
@@ -70,7 +84,6 @@ def is_u_b_chromatic(G: nx.Graph, f: dict[int, int], u: int, C: set[int]=None) -
     else:
         return False
     
-
 def are_b_chromatic(G: nx.Graph, f: dict[int, int], V: list[int]) -> bool:
     """Verify whether the vertices in V are b-chromatic vertices with respect to f for some colour c.
 
@@ -83,6 +96,17 @@ def are_b_chromatic(G: nx.Graph, f: dict[int, int], V: list[int]) -> bool:
         Bool: Whether vertices in V are all b-chromatic.
     """
     check_G_instance(G)
+    if G.number_of_nodes() == 0:
+        raise ValueError("G is the null graph")
+    if not f:
+        raise ValueError("f is empty")
+    if not V:
+        raise ValueError("V is empty")
+    if any(u not in G for u in V):
+        raise KeyError("There is a vertex in V not in G")
+    if any(u not in f for u in V):
+        raise KeyError("There is a vertex in V not in f")
+
     C = set([cp for cp in f.values() if cp != None])
     CB = {c:False for c in C if c is not None}
     if all( # For all colours c in C
@@ -106,6 +130,11 @@ def is_proper(G: nx.Graph, f: dict[int, int]) -> bool:
         bool: Whether c is proper and not partial.    
     """
     check_G_instance(G)
+    if G.number_of_nodes() == 0:
+        raise ValueError("G is the null graph")
+    if not f:
+        raise ValueError("f is empty")
+    
     if all(
         f[u] is not None and f[v] is not None and f[u] != f[v] for u, v in G.edges()
     ):
@@ -125,6 +154,11 @@ def get_b_chromatic_vertices(G: nx.Graph, f: dict[int, int]) -> dict[int, list[i
         to a list of b-chromatic vertex of that colour class.
     """
     check_G_instance(G)
+    if G.number_of_nodes() == 0:
+        raise ValueError("G is the null graph")
+    if not f:
+        raise ValueError("f is empty")
+    
     C = {c:[] for c in f.values() if c is not None}
     b_colour_classes = {c:[] for c in C}
     for u in G.nodes():
