@@ -1,6 +1,6 @@
 import pytest
 import networkx as nx
-from src.b_chromatic.utils.m_degree import get_m_degree, get_total_m_degree, get_index_m_degree
+from src.utils.m_degree import *
 
 # -- HELPERS / FIXTURES --
 

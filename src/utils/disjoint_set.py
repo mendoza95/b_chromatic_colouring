@@ -1,6 +1,3 @@
-# Python3 program to implement Disjoint Set Data extracted from: https://www.geeksforgeeks.org/disjoint-set-data-structures/
-# Structure.
-
 class DisjointSet:
 	def __init__(self, n):
 		self.rank = [1] * n
