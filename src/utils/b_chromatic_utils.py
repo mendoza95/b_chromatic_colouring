@@ -167,6 +167,41 @@ def get_b_chromatic_vertices(G: nx.Graph, f: dict[int, int]) -> dict[int, list[i
     return b_colour_classes
 
 
+def compute_remaining_colors(G, W, f, C=None):
+    """Get the remaining colours vertices in W need to pick up to become b-chromatic.
+    Args:
+        G (networkx.Graph): Graph
+        W (list[int]): Vertices for which the remaining colours need to be computed
+        f (dict[int, int]): Colouring funtion
+        C (set[int]): Set of colours used by f
+
+    Returns:
+        dict[int, list[int]]: Remaining colours that vertex w \in W need to pick up to become b-chromatic
+    """
+    check_G_instance(G)
+    if G.number_of_nodes() == 0:
+        raise ValueError("G is the null graph")
+    if not f:
+        raise ValueError("f is empty")
+    if C is None:
+        C = set([c for c in f.values() if c is not None])
+
+    good_set_remaining_colors = {w:C.copy() for w in W}
+    for w in W:
+        good_set_remaining_colors[w].discard(f[w])
+        for v in G.adj[w]:
+            if f[v] is not None:
+                good_set_remaining_colors[w].discard(f[v])
+    return good_set_remaining_colors
+
+def pick_avilable_color(T, u, colours, available_colours):
+    available_colours_u = {c:True for c in available_colours}
+    for v in T.adj[u]:
+        if colours[v] is not None:
+            available_colours_u[colours[v]] = False
+    for c in available_colours_u.keys():
+        if available_colours_u[c]: return c
+
 def check_b_chromatic_coloring(T, W, colors, m):
     # This function is the same as are_b_chromatic function so it must be discarded.
     for value in colors.values(): assert value != None
