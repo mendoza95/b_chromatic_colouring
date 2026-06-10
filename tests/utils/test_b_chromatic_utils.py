@@ -221,3 +221,57 @@ def test_get_b_chromatic_vertices_logic(paw_b_colouring_example):
     G, f = paw_b_colouring_example
     G.add_edge(3,4)
     assert get_b_chromatic_vertices(G, f) == {1:[1], 2:[2,4], 3:[3]}
+
+# TEST compute_remaining_colors FUNCTION
+
+def test_compute_remaining_colors_G_null(empty_graph_function):
+    G, f, u = empty_graph_function
+    with pytest.raises(ValueError, match="G is the null graph"):
+        compute_remaining_colors(G, [], f)
+
+def test_compute_remaining_colors_f_empty(empty_graph_function):
+    G, f, u = empty_graph_function
+    G.add_node(u)
+    with pytest.raises(ValueError, match="f is empty"):
+        compute_remaining_colors(G, [u], f)
+
+def test_compute_remaining_colors_logic(paw_b_colouring_example):
+    """
+    G: (1,2), (2,3), (3,1), (1,4)
+    f: {1:1, 2:2, 3:3, 4:2}
+    C: {1, 2, 3}
+    """
+    G, f = paw_b_colouring_example
+    W = [1, 4]
+    # For vertex 1: f(1)=1. Neighbors {2,3,4} have colors {2,3,2}. 
+    # Missing colors from C \ {1} are none.
+    # For vertex 4: f(4)=2. Neighbors {1} have color {1}. 
+    # Missing colors from C \ {2} are {3}.
+    expected = {1: set(), 4: {3}}
+    assert compute_remaining_colors(G, W, f) == expected
+
+# TEST pick_available_color FUNCTION
+
+def test_pick_available_color_G_null(empty_graph_function):
+    G, f, u = empty_graph_function
+    with pytest.raises(ValueError, match="G is the null graph"):
+        pick_available_color(G, u, f)
+
+def test_pick_available_color_f_empty(empty_graph_function):
+    G, f, u = empty_graph_function
+    G.add_node(u)
+    with pytest.raises(ValueError, match="f is empty"):
+        pick_available_color(G, u, f)
+
+def test_pick_available_color_logic(paw_b_colouring_example):
+    G, f = paw_b_colouring_example
+    # C = {1, 2, 3}. Vertex 4 has neighbor 1 with color 1.
+    # Available colors are {2, 3}.
+    res = pick_available_color(G, 4, f)
+    assert res in {2, 3}
+
+def test_pick_available_color_none_available():
+    G = nx.complete_graph(3)
+    f = {0: 1, 1: 2, 2: 3}
+    # If we only have colors {2, 3} available globally, 0 cannot pick any.
+    assert pick_available_color(G, 0, f, C={2, 3}) is None

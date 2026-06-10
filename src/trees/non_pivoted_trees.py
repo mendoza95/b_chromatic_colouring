@@ -1,5 +1,5 @@
 import networkx as nx
-from utils.b_chromatic_utils import compute_remaining_colors, pick_avilable_color
+from utils.b_chromatic_utils import compute_remaining_colors, pick_available_color
 from pivoted_trees import get_candidates_v1_v2
 
 def does_encircle(T, V2, m):
@@ -238,5 +238,5 @@ def color_non_pivoted_tree(T, W, good_set_mask, m, step=None):
 
     #STEP 4
     for v in non_colored_nodes:
-        colors[v] = pick_avilable_color(T, v, colors, C)
+        colors[v] = pick_available_color(T, v, colors, C)
     return colors

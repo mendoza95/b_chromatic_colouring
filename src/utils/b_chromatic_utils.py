@@ -176,7 +176,7 @@ def compute_remaining_colors(G, W, f, C=None):
         C (set[int]): Set of colours used by f
 
     Returns:
-        dict[int, list[int]]: Remaining colours that vertex w \in W need to pick up to become b-chromatic
+        dict[int, set[int]]: Remaining colours that vertex w in W need to pick up to become b-chromatic
     """
     check_G_instance(G)
     if G.number_of_nodes() == 0:
@@ -194,13 +194,43 @@ def compute_remaining_colors(G, W, f, C=None):
                 good_set_remaining_colors[w].discard(f[v])
     return good_set_remaining_colors
 
-def pick_avilable_color(T, u, colours, available_colours):
-    available_colours_u = {c:True for c in available_colours}
-    for v in T.adj[u]:
-        if colours[v] is not None:
-            available_colours_u[colours[v]] = False
-    for c in available_colours_u.keys():
-        if available_colours_u[c]: return c
+def pick_available_color(G, u, f, C=None) -> int | None:
+    """Picks an available color for a given vertex u from a set of available colors.
+
+    This function determines a color for vertex `u` such that it does not conflict
+    with the colors of its already colored neighbors, adhering to proper coloring rules.
+
+    Args:
+        T (networkx.Graph): The graph.
+        u (int): The vertex for which to pick an available color.
+        colours (dict[int, int | None]): A dictionary mapping vertices to their assigned
+                                         colors (or None if uncolored).
+        available_colours (set[int]): A set of all colors that are potentially available for coloring.
+
+    Returns:
+        int: An available color for vertex `u` that satisfies proper coloring constraints; None if no colour is available."""
+    
+    check_G_instance(G)
+    if G.number_of_nodes() == 0:
+        raise ValueError("G is the null graph")
+    if not f:
+        raise ValueError("f is empty")
+    if C is None:
+        C = set([c for c in f.values() if c is not None])
+
+    
+    colourhood_u = {f[v] for v in G.adj[u] if f[v]}
+    for c in C:
+        if c not in colourhood_u:
+            return c
+    return None
+    #available_colours_u = {c:True for c in C}
+    #for v in G.adj[u]:
+    #    if f[v] is not None:
+    #        available_colours_u[f[v]] = False
+    #for c in available_colours_u.keys():
+    #    if available_colours_u[c]: return c
+    
 
 def check_b_chromatic_coloring(T, W, colors, m):
     # This function is the same as are_b_chromatic function so it must be discarded.
